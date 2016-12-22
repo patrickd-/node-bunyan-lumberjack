@@ -17,6 +17,19 @@ clone = (obj) ->
     answer[key] = value for key, value of obj
     return answer
 
+# A JSON stringifier that handles cycles safely.
+# Circular references are removed.
+# Usage: JSON.stringify(obj, safeCycles())
+safeCycles = () ->
+    seen = []
+    return (key, val) ->
+        if not val or typeof(val) isnt 'object'
+            return val
+        if seen.indexOf(val) isnt -1
+            return undefined
+        seen.push val
+        return val
+
 ###
 Overwrites obj1's values with obj2's and adds obj2's if non existent in obj1
 @param obj1
@@ -83,7 +96,7 @@ class BunyanLumberjackStream extends Writable
         entry.source = "#{host}/#{@_application}"
 
         dataFrame = {
-            line: JSON.stringify(entry, bunyan.safeCycles())
+            line: JSON.stringify(entry, safeCycles())
             host: host
             bunyanLevel: bunyanLevel
         }
